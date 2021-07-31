@@ -1,0 +1,69 @@
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from tensorflow import keras
+
+from sklearn.utils import shuffle
+from sklearn.metrics import accuracy_score
+train_data = pd.read_csv("C:/Users/Image recognition/train.csv")
+#test_data = pd.read_csv("C:/Users/Image recognition/test.csv")
+
+from sklearn.model_selection import train_test_split
+
+train_data_y= train_data['label']
+train_data_x= train_data.drop(['label'],axis=1)
+
+
+
+train_x, test_x , train_y, test_y = train_test_split(train_data_x, train_data_y) 
+train_x.shape
+test_x.shape
+train_x = np.array(train_x)
+test_x = np.array(test_x)
+
+train_y = pd.get_dummies(train_y)
+
+test_y = pd.get_dummies(test_y)
+
+train_x = train_x.reshape(-1,28,28,1)
+test_x = test_x.reshape(-1,28,28,1)
+train_x.shape
+from tensorflow.keras import layers
+
+model = keras.Sequential([
+    layers.Conv2D(32, kernel_size=(3,3), activation='relu', input_shape=(28,28,1)),
+    layers.Conv2D(64, (3,3),activation='relu'),
+    layers.MaxPooling2D(pool_size=(2, 2)),
+    layers.Dropout(0.25),
+    layers.Flatten(),
+    layers.Dense(128, activation='relu'),
+    layers.Dropout(0.5),
+    layers.Dense(10, activation='softmax')
+])
+model.compile(
+    optimizer ='adam',
+    loss='categorical_crossentropy', 
+    metrics = ['accuracy']
+)
+print(train_x.shape)
+print(train_y.shape)
+print(test_x.shape)
+print(test_y.shape)
+model.fit(train_x,train_y, epochs = 10, validation_data=(test_x,test_y))
+model.save('digitRecogMNIST.h5')
+import matplotlib.pyplot as plt
+from IPython.display import clear_output
+
+while(True):
+    r = np.random.randint(900)
+    test_img = np.reshape(test_x[r], (28,28))
+    plt.imshow(test_img, cmap="gray")
+    test_img = np.reshape(test_x[r], (28,28,1))
+    test_pred = model.predict(np.array([test_x[r]]))
+    print("Model : I think it is :    ",np.argmax(test_pred))
+    plt.show()
+
+    if input("Enter n to exit")=='n':
+        break
+    clear_output()
+;
